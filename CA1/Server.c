@@ -198,7 +198,7 @@ void start_class(struct Classes* classes, int class_id)
 	sprintf(msg, "192.168.1.%d", classes->last_used_ip);
 	for (int i = 0; i < NUM_OF_STUDENTS_IN_CLASS; i++)
 	{
-		write(classes->classes[class_id].students[i]->client_fd, msg, strlen(msg));
+		send(classes->classes[class_id].students[i]->client_fd, msg, strlen(msg), 0);
 		classes->classes[class_id].students[i]->situation = STUDENT_IN_COMINUCATING;
 	}
 	write(WRITE_FD, "ip sent to student\n", MAX_MSG_LEN);
@@ -251,7 +251,7 @@ int main(int argc, char const *argv[])
 				{
 					if (clients.clients[i].situation == STUDENT_WANTS_TO_JOIN_CLASS) // request room for lesson
 					{
-						read(i, buffer, MAX_MSG_LEN);
+						recv(i, buffer, MAX_MSG_LEN, 0);
 
 						int class_id = enter_class(&clients.clients[i], &classes, buffer);
 
@@ -259,26 +259,26 @@ int main(int argc, char const *argv[])
 						write(WRITE_FD, msg, strlen(msg));
 
 						sprintf(msg, "%d", clients.clients[i].turn);
-						write(i, msg, strlen(msg));
+						send(i, msg, strlen(msg), 0);
 
 						if (classes.classes[class_id].num_of_current_students == NUM_OF_STUDENTS_IN_CLASS)
 							start_class(&classes, class_id);
 					}
 					else if (clients.clients[i].situation == STUDENT_IS_IN_CLASS)
 					{
-						read(i, buffer, MAX_MSG_LEN);
-						write(i, "wait until class start\n", MAX_MSG_LEN);
+						recv(i, buffer, MAX_MSG_LEN, 0);
+						send(i, "wait until class start\n", MAX_MSG_LEN, 0);
 					}
 					else // recieve q&a
 					{
 						int file_fd = open("data.txt", O_APPEND | O_RDONLY);
-						read(i, buffer, MAX_MSG_LEN);
-						write(file_fd, buffer, strlen(buffer));
+						recv(i, buffer, MAX_MSG_LEN, 0);
+						send(file_fd, buffer, strlen(buffer), 0);
 						close(i);
 						close(file_fd);
 
 						sprintf(msg, "student %i has sent q&a\n", i);
-						write(WRITE_FD, msg, strlen(msg));
+						send(WRITE_FD, msg, strlen(msg), 0);
 
 						clients.clients[i].situation = STUDENT_FINISHED;
 						classes.classes[clients.clients[i].class_id].num_of_answered_questions++;
