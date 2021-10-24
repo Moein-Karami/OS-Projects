@@ -20,7 +20,7 @@
 
 int connect_to_server(int port)
 {
-	write(WRITE_FD, "connecting to server ...\n", MAX_MSG_LEN);
+	write(WRITE_FD, "connecting to server ...\n", strlen("connecting to server ...\n"));
     int fd;
     struct sockaddr_in server_address;
 
@@ -34,7 +34,8 @@ int connect_to_server(int port)
         printf("Error in connecting to server\n");
     }
 
-	char msg[MAX_MSG_LEN];
+	char msg[MAX_MSG_LEN] = {0};
+	memset(msg, 0, MAX_MSG_LEN);
 	sprintf(msg, "connected to server. fd = %d\n", fd);
 	write(WRITE_FD, msg, strlen(msg));
 
@@ -43,18 +44,21 @@ int connect_to_server(int port)
 
 int request_lesson(int fd)
 {
-	char buffer[MAX_MSG_LEN];
+	char buffer[MAX_MSG_LEN] = {0};
 
-	write(WRITE_FD, "enter your question subject: ", MAX_MSG_LEN);
+	write(WRITE_FD, "enter your question subject: ", strlen("enter your question subject: "));
+	memset(buffer, 0, MAX_MSG_LEN);
 	read(READ_FD, buffer, MAX_MSG_LEN);
 
-	write(WRITE_FD, "request class from server\n", MAX_MSG_LEN);
+	write(WRITE_FD, "request class from server\n", strlen("request class from server\n"));
 
 	send(fd, buffer, strlen(buffer), 0);
-	recv(fd, buffer, strlen(buffer), 0);
+	memset(buffer, 0, MAX_MSG_LEN);
+	recv(fd, buffer, MAX_MSG_LEN, 0);
 
-	char msg[MAX_MSG_LEN];
-	sprintf(msg, "you join to class, your turn is %s", buffer);
+	char msg[MAX_MSG_LEN] = {0};
+	memset(msg, 0, MAX_MSG_LEN);
+	sprintf(msg, "you join to class, your turn is %s\n", buffer);
 	write(WRITE_FD, msg, strlen(msg));
 
 	return atoi(buffer);
@@ -62,14 +66,16 @@ int request_lesson(int fd)
 
 void alarm_handler(int sig)
 {
-	write(WRITE_FD, "Time is up!\n", MAX_MSG_LEN);
+	write(WRITE_FD, "Time is up!\n", strlen("Time is up!\n"));
 }
 
-void start_cominucate(int fd, char* ip, int port, int turn, char* ans)
+void start_comunicate(int fd, char* ip, int port, int turn)
 {
-	char buffer[MAX_MSG_LEN];
+	char buffer[MAX_MSG_LEN] = {0};
+	char dummy[MAX_MSG_LEN] = {0};
+	char ans[NUM_OF_STUDENTS * MAX_MSG_LEN] = {0};
 
-	write(WRITE_FD, "Connecing to class\n", MAX_MSG_LEN);
+	write(WRITE_FD, "Connecing to class\n", strlen("Connecing to class\n"));
 
 	int sock, broadcast = 1, opt = 1;
     struct sockaddr_in bc_address;
@@ -84,79 +90,117 @@ void start_cominucate(int fd, char* ip, int port, int turn, char* ans)
 
     bind(sock, (struct sockaddr *)&bc_address, sizeof(bc_address));
 
-	write(WRITE_FD, "you are connected\n", MAX_MSG_LEN);
+	memset(buffer, 0, MAX_MSG_LEN);
+	sprintf(buffer, "you are connected to ip : %s\n", ip);
+	write(WRITE_FD, buffer, strlen(buffer));
 
-	char question[MAX_MSG_LEN], answers[2][MAX_MSG_LEN];
+	char question[MAX_MSG_LEN] = {0}, answers[2][MAX_MSG_LEN] = {0};
 
 
 	for (int i = 1; i <= NUM_OF_STUDENTS; i++)
 	{
 		if (i == turn)
 		{
-			write(WRITE_FD, "Write your question\n", MAX_MSG_LEN);
+			write(WRITE_FD, "Write your question\n", strlen("Write your question\n"));
+			memset(question, 0, MAX_MSG_LEN);
 			read(READ_FD, question, MAX_MSG_LEN);
 
 			sendto(sock, question, strlen(question), 0,(struct sockaddr *)&bc_address, sizeof(bc_address));
+			recvfrom(sock, dummy, MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
 
-			recv(sock, answers[0], MAX_MSG_LEN, 0);
-			recv(sock, answers[1], MAX_MSG_LEN, 0);
+			memset(answers[0], 0, MAX_MSG_LEN);
+			memset(answers[1], 0, MAX_MSG_LEN);
 
-			write(WRITE_FD, "Which one is better?(1, 2)\n", MAX_MSG_LEN);
+			recvfrom(sock, answers[0], MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
+			memset(buffer, 0, MAX_MSG_LEN);
+			sprintf(buffer, "Answer1: %s", answers[0]);
+			write(WRITE_FD, buffer, strlen(buffer));
+			recvfrom(sock, answers[1], MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
+			memset(buffer, 0, MAX_MSG_LEN);
+			sprintf(buffer, "Answer2: %s", answers[1]);
+			write(WRITE_FD, buffer, strlen(buffer));
+
+			write(WRITE_FD, "Which one is better?(1, 2)\n", strlen("Which one is better?(1, 2)\n"));
+			memset(buffer, 0, MAX_MSG_LEN);
 			read(READ_FD, buffer, MAX_MSG_LEN);
-			int best = atoi(buffer);
-			int len = strlen(answers[best]);
-			answers[best][len] = '*';
-			answers[best][len + 1] = (char)NULL;
+			int best = atoi(buffer) - 1;
 
+			memset(buffer, 0, MAX_MSG_LEN);
+			sprintf(buffer, "Best answer is: %s", answers[best]);
+			sendto(sock, buffer, strlen(buffer), 0,(struct sockaddr *)&bc_address, sizeof(bc_address));
+			recvfrom(sock, dummy, MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
+
+
+			int len = strlen(answers[best]);
+			answers[best][len - 1] = '*';
+			answers[best][len] = '\n';
+			answers[best][len + 1] = '\0';
+
+			memset(ans, 0, NUM_OF_STUDENTS * MAX_MSG_LEN);
 			sprintf(ans, "%s\n%s\n%s\n", question, answers[0], answers[1]);
+			write(WRITE_FD, "sending best answer...\n", strlen("sending best answer...\n"));
+
+			send(fd, ans, strlen(ans), 0);
 		}
 		else
 		{
-			recv(sock, buffer, MAX_MSG_LEN, 0);
+			memset(buffer, 0, MAX_MSG_LEN);
+			recvfrom(sock, buffer, MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
 
+			memset(question, 0, MAX_MSG_LEN);
 			sprintf(question, "question is:\n%s\n", buffer);
 			write(WRITE_FD, question, strlen(question));
 
 			int before = turn - 1;
 			if (i < turn)
-				turn--;
+				before--;
 
 			while (before--)
-				recv(sock, buffer, MAX_MSG_LEN, 0);
+				recvfrom(sock, buffer, MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
 
-			write(WRITE_FD, "write your answer:\n", MAX_MSG_LEN);
+			write(WRITE_FD, "write your answer:\n", strlen("write your answer:\n"));
 
 			signal(SIGALRM, alarm_handler);
 			siginterrupt(SIGALRM, 1);
 			alarm(60);
+			memset(buffer, 0, MAX_MSG_LEN);
 			read(READ_FD, buffer, MAX_MSG_LEN);
 			alarm(0);
+			if (buffer[0] == '\0')
+				strcpy(buffer, "No Idea!\n");
 			sendto(sock, buffer, strlen(question), 0,(struct sockaddr *)&bc_address, sizeof(bc_address));
+			recvfrom(sock, dummy, MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
+
+			int after = NUM_OF_STUDENTS - turn;
+			if (i > turn)
+				after--;
+			while (after--)
+				recvfrom(sock, dummy, MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
+
+			memset(buffer, 0, MAX_MSG_LEN);
+			recvfrom(sock, buffer, MAX_MSG_LEN, 0, (struct sockaddr *)&bc_address, sizeof(bc_address));
+			write(WRITE_FD, buffer, strlen(buffer));
 		}
-		close(sock);
 	}
+	close(sock);
 }
 
 int main(int argc, char const *argv[])
 {
 	int fd;
-	char buff[MAX_MSG_LEN], ans[NUM_OF_STUDENTS * MAX_MSG_LEN];
+	char buff[MAX_MSG_LEN] = {0}, ans[NUM_OF_STUDENTS * MAX_MSG_LEN] = {0};
 	int turn;
 
 	int port = atoi(argv[1]);
-
 	fd = connect_to_server(port);
 
 	turn = request_lesson(fd);
 
+	memset(buff, 0, MAX_MSG_LEN);
 	recv(fd, buff, MAX_MSG_LEN, 0);
-	start_cominucate(fd, buff, port, turn, ans);
+	start_comunicate(fd, buff, port, turn);
 
-	write(WRITE_FD, "sending best answer...\n", MAX_MSG_LEN);
-
-	send(fd, ans, strlen(ans), 0);
-
-	write(WRITE_FD, "done\n", MAX_MSG_LEN);
+	write(WRITE_FD, "done\n", strlen("done\n"));
 
 	close(fd);
 }

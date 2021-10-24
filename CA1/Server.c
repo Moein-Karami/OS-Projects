@@ -7,13 +7,14 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
+#include <signal.h>
 
 #define MAX_LESSON_LEN 128
 #define NUM_OF_STUDENTS_IN_CLASS 3
 #define IP_LEN 16
-#define INITIAL_NUMBER_OF_CLASSES 4
-#define INITIAL_NUMBER_OF_CLIENTS 8
-#define MAX_NUM_OF_CLIENTS_IN_QUEUE 8
+#define INITIAL_NUMBER_OF_CLASSES 128
+#define INITIAL_NUMBER_OF_CLIENTS 384
+#define MAX_NUM_OF_CLIENTS_IN_QUEUE 32
 #define BUFFER_SIZE 128
 #define WRITE_FD 1
 #define READ_FD 0
@@ -24,6 +25,7 @@
 #define CIVIL 2
 #define MECH 3
 #define NUM_OF_CLASSES 4
+#define IP 20
 
 #define STUDENT_WANTS_TO_JOIN_CLASS 1
 #define STUDENT_IS_IN_CLASS 2
@@ -66,7 +68,7 @@ struct Classes
 	int current_max_num_of_classes;
 	struct Class* classes;
 	int open_classes[NUM_OF_CLASSES];
-	int last_used_ip;
+	unsigned int last_used_ip;
 };
 
 void init_clients(struct Clients* clients)
@@ -83,11 +85,12 @@ void init_classes(struct Classes* classes)
 	classes->classes = (struct Class*) malloc(classes->max_num_of_classes * sizeof(struct Class));
 	for (int i = 0; i < NUM_OF_CLASSES; i++)
 		classes->open_classes[i] = -1;
+	classes->last_used_ip = IP;
 }
 
 int setup_server(int port)
 {
-	write(WRITE_FD, "setting up server ...", MAX_MSG_LEN);
+	write(WRITE_FD, "setting up server ...\n", strlen("setting up server ...\n"));
 
 	struct sockaddr_in address;
     int server_fd;
@@ -109,9 +112,9 @@ int setup_server(int port)
 
 int add_client(int server_fd, struct Clients* clients)
 {
-	char buffer[MAX_MSG_LEN];
+	char buffer[MAX_MSG_LEN] = {0};
 
-	write(WRITE_FD, "adding new client ...\n", MAX_MSG_LEN);
+	write(WRITE_FD, "adding new client ...\n", strlen("adding new client ...\n"));
 
 	int new_client_fd;
 	struct sockaddr_in client_address;
@@ -129,7 +132,8 @@ int add_client(int server_fd, struct Clients* clients)
 	clients->clients[new_client_fd].client_fd = new_client_fd;
 	clients->clients[new_client_fd].situation = STUDENT_WANTS_TO_JOIN_CLASS;
 
-	sprintf(buffer, "new client connected. fd = %d", new_client_fd);
+	memset(buffer, 0, MAX_MSG_LEN);
+	sprintf(buffer, "new client connected. fd = %d\n", new_client_fd);
 	write(WRITE_FD, buffer, strlen(buffer));
 
 	return new_client_fd;
@@ -137,11 +141,11 @@ int add_client(int server_fd, struct Clients* clients)
 
 int get_lesson_id(char* lesson)
 {
-	if (strcmp(lesson, "Computer"))
+	if (strcmp(lesson, "Computer\n") == 0)
 		return COMPUTER;
-	else if (strcmp(lesson, "Electronics"))
+	else if (strcmp(lesson, "Electronics\n") == 0)
 		return ELEC;
-	else if (strcmp(lesson, "CIVIL"))
+	else if (strcmp(lesson, "Civil\n") == 0)
 		return CIVIL;
 	else
 		return MECH;
@@ -149,9 +153,10 @@ int get_lesson_id(char* lesson)
 
 int find_class(struct Classes* classes, char* lesson)
 {
-	write(WRITE_FD, "finding class...\n", MAX_LESSON_LEN);
+	write(WRITE_FD, "finding class...\n", strlen("finding class...\n"));
 
 	int lesson_id = get_lesson_id(lesson);
+
 	if (classes->open_classes[lesson_id] == -1 || classes->classes[classes->open_classes[lesson_id]].situation !=
 			CLASS_IS_OPEN)
 	{
@@ -171,9 +176,10 @@ int find_class(struct Classes* classes, char* lesson)
 
 int enter_class(struct Client* client, struct Classes* classes, char* lesson)
 {
-	char msg[MAX_MSG_LEN];
+	char msg[MAX_MSG_LEN] = {0};
 
-	sprintf(msg, "client %d wants enter %s class\n", client->client_fd, lesson);
+	memset(msg, 0, MAX_MSG_LEN);
+	sprintf(msg, "client %d wants enter %s\n", client->client_fd, lesson);
 	write(WRITE_FD, msg, strlen(msg));
 
 	client->situation = STUDENT_IS_IN_CLASS;
@@ -188,38 +194,41 @@ int enter_class(struct Client* client, struct Classes* classes, char* lesson)
 
 void start_class(struct Classes* classes, int class_id)
 {
-	char msg[MAX_MSG_LEN];
+	char msg[MAX_MSG_LEN] = {0};
 	classes->last_used_ip++;
 	classes->last_used_ip %= 256;
 
+	memset(msg, 0, MAX_MSG_LEN);
 	sprintf(msg, "class %d is ready to start on ip %d\n", class_id, classes->last_used_ip);
 	write(WRITE_FD, msg, strlen(msg));
 
+	memset(msg, 0, MAX_MSG_LEN);
 	sprintf(msg, "192.168.1.%d", classes->last_used_ip);
 	for (int i = 0; i < NUM_OF_STUDENTS_IN_CLASS; i++)
 	{
 		send(classes->classes[class_id].students[i]->client_fd, msg, strlen(msg), 0);
 		classes->classes[class_id].students[i]->situation = STUDENT_IN_COMINUCATING;
 	}
-	write(WRITE_FD, "ip sent to student\n", MAX_MSG_LEN);
+	write(WRITE_FD, "ip sent to student\n", strlen("ip sent to student\n"));
 
 	classes->classes[class_id].situation = CLASS_IS_BUSY;
 }
 
 int main(int argc, char const *argv[])
 {
-	write(WRITE_FD, "Start initial classes and clients ...\n", MAX_MSG_LEN);
+	write(WRITE_FD, "Start initial classes and clients ...\n", strlen("Start initial classes and clients ...\n"));
 	struct Clients clients;
 	struct Classes classes;
 	init_clients(&clients);
 	init_classes(&classes);
-	char msg[MAX_MSG_LEN];
+	char msg[MAX_MSG_LEN] = {0};
 
-	write(WRITE_FD, "Reading port ...\n", MAX_MSG_LEN);
-	char buffer[BUFFER_SIZE];
+	write(WRITE_FD, "Reading port ...\n", strlen("Reading port ...\n"));
+	char buffer[MAX_MSG_LEN] = {0};
 	int port = atoi(argv[1]);
 	fd_set master_set, working_set;
 
+	memset(buffer, 0, MAX_MSG_LEN);
 	sprintf(buffer, "port %d activated\n", port);
 	write(WRITE_FD, buffer, strlen(buffer));
 
@@ -229,12 +238,19 @@ int main(int argc, char const *argv[])
 	FD_ZERO(&master_set);
 	FD_SET(server_fd, &master_set);
 
-	write(WRITE_FD, "server is runnig", MAX_MSG_LEN);
+	memset(buffer, 0, MAX_MSG_LEN);
+	sprintf(buffer, "server is runing... fd = %d\n", server_fd);
+	write(WRITE_FD, buffer, strlen(buffer));
 
-	for(;;)
+	while(1)
 	{
 		working_set = master_set;
+
+		write(WRITE_FD, "waiting for request...\n", strlen("waiting for request...\n"));
+
 		select(max_fd + 1, &working_set, NULL, NULL, NULL);
+
+		write(WRITE_FD, "request received\n", strlen("request received\n"));
 
 		for (int i = 0; i <= max_fd; i++)
 		{
@@ -251,13 +267,16 @@ int main(int argc, char const *argv[])
 				{
 					if (clients.clients[i].situation == STUDENT_WANTS_TO_JOIN_CLASS) // request room for lesson
 					{
+						memset(buffer, 0, MAX_MSG_LEN);
 						recv(i, buffer, MAX_MSG_LEN, 0);
 
 						int class_id = enter_class(&clients.clients[i], &classes, buffer);
 
+						memset(msg, 0, MAX_MSG_LEN);
 						sprintf(msg, "class %d is proper\n", class_id);
 						write(WRITE_FD, msg, strlen(msg));
 
+						memset(msg, 0, MAX_MSG_LEN);
 						sprintf(msg, "%d", clients.clients[i].turn);
 						send(i, msg, strlen(msg), 0);
 
@@ -266,17 +285,23 @@ int main(int argc, char const *argv[])
 					}
 					else if (clients.clients[i].situation == STUDENT_IS_IN_CLASS)
 					{
+						memset(buffer, 0, MAX_MSG_LEN);
 						recv(i, buffer, MAX_MSG_LEN, 0);
-						send(i, "wait until class start\n", MAX_MSG_LEN, 0);
+						send(i, "wait until class start\n", strlen("wait until class start\n"), 0);
 					}
 					else // recieve q&a
 					{
-						int file_fd = open("data.txt", O_APPEND | O_RDONLY);
+						write(WRITE_FD, "some one wants to send answer\n", strlen("some one wants to send answer\n"));
+						int file_fd = open("data.txt", O_CREAT | O_APPEND | O_WRONLY);
+						memset(buffer, 0, MAX_MSG_LEN);
 						recv(i, buffer, MAX_MSG_LEN, 0);
-						send(file_fd, buffer, strlen(buffer), 0);
+						write(file_fd, buffer, strlen(buffer));
+						write(file_fd, "\n", strlen("\n"));
 						close(i);
+						FD_CLR(i, &master_set);
 						close(file_fd);
 
+						memset(msg, 0, MAX_MSG_LEN);
 						sprintf(msg, "student %i has sent q&a\n", i);
 						send(WRITE_FD, msg, strlen(msg), 0);
 
