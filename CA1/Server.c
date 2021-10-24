@@ -19,13 +19,13 @@
 #define WRITE_FD 1
 #define READ_FD 0
 #define ERR_FD 2
-#define MAX_MSG_LEN 512
+#define MAX_MSG_LEN 1024
 #define COMPUTER 0
 #define ELEC 1
 #define CIVIL 2
 #define MECH 3
 #define NUM_OF_CLASSES 4
-#define IP 20
+#define PORT 4000
 
 #define STUDENT_WANTS_TO_JOIN_CLASS 1
 #define STUDENT_IS_IN_CLASS 2
@@ -50,7 +50,7 @@ struct Class
 	int num_of_current_students;
 	struct Client* students[NUM_OF_STUDENTS_IN_CLASS];
 	int num_of_answered_questions;
-	char ip_adr[IP_LEN];
+	int port;
 	int situation;
 	char lesson[MAX_LESSON_LEN];
 };
@@ -68,7 +68,7 @@ struct Classes
 	int current_max_num_of_classes;
 	struct Class* classes;
 	int open_classes[NUM_OF_CLASSES];
-	unsigned int last_used_ip;
+	unsigned int last_used_port;
 };
 
 void init_clients(struct Clients* clients)
@@ -85,7 +85,7 @@ void init_classes(struct Classes* classes)
 	classes->classes = (struct Class*) malloc(classes->max_num_of_classes * sizeof(struct Class));
 	for (int i = 0; i < NUM_OF_CLASSES; i++)
 		classes->open_classes[i] = -1;
-	classes->last_used_ip = IP;
+	classes->last_used_port = PORT;
 }
 
 int setup_server(int port)
@@ -95,6 +95,13 @@ int setup_server(int port)
 	struct sockaddr_in address;
     int server_fd;
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (server_fd < 0)
+	{
+		write(WRITE_FD, "Problem in socket() function\n",
+				strlen("Problem in socket() function\n"));
+		exit(EXIT_FAILURE);
+	}
 
     int opt = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
@@ -195,21 +202,21 @@ int enter_class(struct Client* client, struct Classes* classes, char* lesson)
 void start_class(struct Classes* classes, int class_id)
 {
 	char msg[MAX_MSG_LEN] = {0};
-	classes->last_used_ip++;
-	classes->last_used_ip %= 256;
+	classes->last_used_port++;
 
 	memset(msg, 0, MAX_MSG_LEN);
-	sprintf(msg, "class %d is ready to start on ip %d\n", class_id, classes->last_used_ip);
+	sprintf(msg, "class %d is ready to start on port %d\n", class_id, classes->last_used_port);
 	write(WRITE_FD, msg, strlen(msg));
 
 	memset(msg, 0, MAX_MSG_LEN);
-	sprintf(msg, "192.168.1.%d", classes->last_used_ip);
+	sprintf(msg, "%d", classes->last_used_port);
+	classes->classes[class_id].port = classes->last_used_port;
 	for (int i = 0; i < NUM_OF_STUDENTS_IN_CLASS; i++)
 	{
 		send(classes->classes[class_id].students[i]->client_fd, msg, strlen(msg), 0);
 		classes->classes[class_id].students[i]->situation = STUDENT_IN_COMINUCATING;
 	}
-	write(WRITE_FD, "ip sent to student\n", strlen("ip sent to student\n"));
+	write(WRITE_FD, "port sent to student\n", strlen("port sent to student\n"));
 
 	classes->classes[class_id].situation = CLASS_IS_BUSY;
 }
@@ -292,7 +299,12 @@ int main(int argc, char const *argv[])
 					else // recieve q&a
 					{
 						write(WRITE_FD, "some one wants to send answer\n", strlen("some one wants to send answer\n"));
-						int file_fd = open("data.txt", O_CREAT | O_APPEND | O_WRONLY);
+						int file_fd = open("data.txt", O_CREAT | O_APPEND | O_RDWR, 0666);
+						if (file_fd < 0)
+						{
+							write(WRITE_FD, "Error in openning file\n", strlen("Error in openning file\n"));
+							exit(EXIT_FAILURE);
+						}
 						memset(buffer, 0, MAX_MSG_LEN);
 						recv(i, buffer, MAX_MSG_LEN, 0);
 						write(file_fd, buffer, strlen(buffer));
