@@ -1,0 +1,24 @@
+CC = g++ -std=c++17
+BUILD_DIR = ./build
+SRC_DIR = ./src
+INCLUDE_DIR = ./include
+
+all : pipes.out
+
+pipes.out : ${BUILD_DIR}/Common_Tools.o ${BUILD_DIR}/Main_Process.o ${BUILD_DIR}/Map_Process.o ${BUILD_DIR}/Reduce_Process.o
+	${CC} ${BUILD_DIR}/Common_Tools.o ${BUILD_DIR}/Main_Process.o ${BUILD_DIR}/Reduce_Process.o ${BUILD_DIR}/Map_Process.o -o pipes.out
+
+${BUILD_DIR}/Common_Tools.o : ${SRC_DIR}/Common_Tools.cpp ${INCLUDE_DIR}/Common_Tools.hpp ${INCLUDE_DIR}/Defines_Libraries.hpp
+	${CC} -c ${SRC_DIR}/Common_Tools.cpp -o ${BUILD_DIR}/Common_Tools.o
+
+${BUILD_DIR}/Map_Process.o : ${SRC_DIR}/Map_Process.cpp ${INCLUDE_DIR}/Map_Process.hpp ${INCLUDE_DIR}/Common_Tools.hpp ${INCLUDE_DIR}/Defines_Libraries.hpp
+	${CC} -c ${SRC_DIR}/Map_Process.cpp -o ${BUILD_DIR}/Map_Process.o
+
+${BUILD_DIR}/Reduce_Process.o : ${SRC_DIR}/Reduce_Process.cpp ${INCLUDE_DIR}/Reduce_Process.hpp ${INCLUDE_DIR}/Common_Tools.hpp ${INCLUDE_DIR}/Defines_Libraries.hpp
+	${CC} -c ${SRC_DIR}/Reduce_Process.cpp -o ${BUILD_DIR}/Reduce_Process.o
+
+${BUILD_DIR}/Main_Process.o : ${SRC_DIR}/Main_Process.cpp ${INCLUDE_DIR}/Main_Process.hpp ${INCLUDE_DIR}/Common_Tools.hpp ${INCLUDE_DIR}/Defines_Libraries.hpp
+	${CC} -c ${SRC_DIR}/Main_Process.cpp -o ${BUILD_DIR}/Main_Process.o
+
+clean:
+	rm *.out ${BUILD_DIR}/*

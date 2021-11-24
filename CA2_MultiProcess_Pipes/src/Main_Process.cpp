@@ -1,6 +1,4 @@
 #include "Main_Process.hpp"
-#include "Map_Process.hpp"
-#include "Reduce_Process.hpp"
 #include "Common_Tools.hpp"
 
 MainProcess::MainProcess():

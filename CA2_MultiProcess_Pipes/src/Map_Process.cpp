@@ -1,6 +1,5 @@
 #include "Map_Process.hpp"
 #include "Common_Tools.hpp"
-#include "Reduce_Process.hpp"
 
 MapProcess::MapProcess(char* argv[])
 {
