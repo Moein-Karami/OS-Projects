@@ -7,7 +7,6 @@ class MainProcess
 {
 	public:
 		MainProcess();
-		~MainProcess();
 		void start();
 
 	private:
@@ -16,8 +15,7 @@ class MainProcess
 		void write_out_data(KeyValueMap key_valus);
 		int count_number_of_files();
 
-		std::vector<int*> pipes_fd;
-		int named_pipe_fd;
+		int number_of_files;
 };
 
 #endif

@@ -7,7 +7,6 @@ class MapProcess
 {
 	public:
 		MapProcess(char* argv[]);
-		~MapProcess();
 		void start();
 
 	private:
@@ -16,7 +15,7 @@ class MapProcess
 
 	int pipe_fd;
 	std::string file_path;
-	int named_pipe_fd;
+	std::string pipe_name;
 };
 
 #endif
