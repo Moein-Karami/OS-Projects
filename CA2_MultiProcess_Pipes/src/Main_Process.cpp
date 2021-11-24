@@ -36,9 +36,10 @@ void MainProcess::transfer_data_to_map_process(int process_number)
 	std::string test_path = std::to_string(process_number)+ CSV;
 	int* fd = new int[2];
 	pipes_fd.push_back(fd);
+	std::string file_path = to_string(process_number) + CSV;
 	pipe(fd);
-
-	char* argv[] = {(char*)MAP_PROC, (char*)(std::to_string(fd[0])).c_str(), (char*)PIPE_NAME};
+	write(fd[1], (char*)file_path, file_path.size());
+	char* argv[] = {(char*)MAP_PROC, (char*)(std::to_string(fd[0])).c_str(), (char*)file_path, (char*)PIPE_NAME};
 	int child_number;
 
 	if ((child_number = fork()) < 0)
@@ -84,4 +85,10 @@ int MainProcess::number_of_files()
 	for (auto& p : std::experimental::filesystem::directory_iterator(path))
 		number_of_files++;
 	return number_of_files;
+}
+
+int main()
+{
+	MainProcess main_process;
+	main_process.start();
 }
