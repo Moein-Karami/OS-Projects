@@ -15,7 +15,7 @@
 #include <iomanip>
 #include <experimental/filesystem>
 
-#define TEST_DIR "./../testcases"
+#define TEST_DIR "./testcases"
 #define PIPE_NAME "./my_named_pipe"
 #define NAMED_PIPE_FLAG 0666
 #define MAX_STR_LENGTH 1024

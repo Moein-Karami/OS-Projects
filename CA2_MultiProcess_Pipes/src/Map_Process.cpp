@@ -15,7 +15,8 @@ MapProcess::MapProcess(char* argv[])
 		else
 			break;
 	}
-	pipe_name += PIPE_NAME;
+	pipe_name = PIPE_NAME + pipe_name;
+	std::cout << file_path << "_cons_map_" << pipe_name << std::endl; 
 }
 
 void MapProcess::start()
@@ -56,7 +57,9 @@ void MapProcess::transfer_data_to_red_process(KeyValueMap key_values)
 
 int main(int argc, char* argv[])
 {
+	std::cout << "map" << std::endl;
 	MapProcess map_process(argv);
+	std::cout << "map start" << std::endl;
 	map_process.start();
 	exit(0);
 }

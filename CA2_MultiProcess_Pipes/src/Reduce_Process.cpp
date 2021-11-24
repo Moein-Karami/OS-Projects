@@ -12,7 +12,7 @@ KeyValueMap ReduceProcess::read_data()
 	KeyValueMap key_values;
 	for (int i = 1; i <= number_of_files; i++)
 	{
-		const char* pipe_name = (std::to_string(i) + PIPE_NAME).c_str();
+		const char* pipe_name = (PIPE_NAME + std::to_string(i)).c_str();
 		int named_pipe_fd = -1;
 		while (named_pipe_fd < 0)
 			named_pipe_fd = open(pipe_name, O_RDONLY);
@@ -22,6 +22,14 @@ KeyValueMap ReduceProcess::read_data()
 			key_values[element.key] += element.value;
 	}
 	return key_values;
+}
+
+KeyValueMap ReduceProcess::read_data_from(int named_pipe_fd)
+{
+	char data[MAX_STR_LENGTH];
+	read(named_pipe_fd, data, MAX_STR_LENGTH);
+	std::string data_str(data);
+	return CommonTools::convert_string_to_key_value_map(data_str);
 }
 
 void ReduceProcess::send_data(KeyValueMap key_values)

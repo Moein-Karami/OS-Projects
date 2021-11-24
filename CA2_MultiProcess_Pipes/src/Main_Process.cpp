@@ -1,5 +1,6 @@
 #include "Main_Process.hpp"
 #include "Common_Tools.hpp"
+#include <dirent.h>
 
 MainProcess::MainProcess():
 number_of_files(0)
@@ -9,17 +10,17 @@ number_of_files(0)
 void MainProcess::start()
 {
 	number_of_files = count_number_of_files();
-
+	number_of_files = 4;
 	for (int i = 1; i <= number_of_files; i++)
 		transfer_data_to_map_process(i);
-
+	std::cout << "wtf" << std::endl;
 	write_out_data(get_data_from_reduce_process());
 }
 
 void MainProcess::transfer_data_to_map_process(int process_number)
 {
-	char file_path[MAX_STR_LENGTH];
-	sprintf(file_path, "%s%s", std::to_string(process_number), CSV);
+	std::string file_path_str = TEST_DIR + std::to_string(process_number) + CSV;
+	const char *file_path = file_path_str.c_str();
 	int fd[2];;
 
 	pipe(fd);
@@ -27,15 +28,14 @@ void MainProcess::transfer_data_to_map_process(int process_number)
 	close(fd[1]);
 
 	char* argv[] = {(char*)MAP_PROC, (char*)(std::to_string(fd[0])).c_str()};
-	int child_number;
 
-	if ((child_number = fork()) < 0)
+	if (fork() == 0)
 	{
-		std::cerr << "Error in fork" << std::endl;
-		exit(1);
-	}
-	else if (child_number == 0)
+		std::cout << process_number << " exec" << std::endl;
+		std::cout << "" << argv[0] << "_*_" << argv[1] << std::endl;
 		execvp(argv[0], argv);
+		exit(0);
+	}
 }
 
 KeyValueMap MainProcess::get_data_from_reduce_process()
@@ -49,15 +49,20 @@ KeyValueMap MainProcess::get_data_from_reduce_process()
 	if ((child_number = fork()) < 0)
 		std::cerr << "Error in fork" << std::endl;
 	else if (child_number == 0)
+	{
 		execvp(argv[0], argv);
+		exit(0);
+	}
 	else
 	{
 		char input[MAX_STR_LENGTH];
+		std::cout << "WATING" << std::endl;
 		read(fd[0], input, MAX_STR_LENGTH);
 		close(fd[0]);
 		std::string str_input(input);
 		return CommonTools::convert_string_to_key_value_map(str_input);
 	}
+	return KeyValueMap();
 }
 
 void MainProcess::write_out_data(KeyValueMap key_values)
@@ -71,11 +76,12 @@ void MainProcess::write_out_data(KeyValueMap key_values)
 
 int MainProcess::count_number_of_files()
 {
-	std::experimental::filesystem::path path(TEST_DIR);
-	int number_of_files = 0;
-	for (auto& p : std::experimental::filesystem::directory_iterator(path))
-		number_of_files++;
-	return number_of_files;
+	int num = 0;
+	struct dirent *entry;
+	DIR *dir = opendir(TEST_DIR);
+	while ((entry = readdir(dir)) != NULL)
+		num++;
+	return num;
 }
 
 int main()
