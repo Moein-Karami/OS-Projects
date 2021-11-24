@@ -1,5 +1,5 @@
-#ifndef _Common_Process_hpp
-#define _Common_Process_hpp
+#ifndef _Common_Tools_hpp
+#define _Common_Tools_hpp
 
 #include "Defines_Libraries.hpp"
 
