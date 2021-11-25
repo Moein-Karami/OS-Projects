@@ -7,6 +7,7 @@ MapProcess::MapProcess(char* argv[])
 
 	char file_name[MAX_STR_LENGTH];
 	read(pipe_fd, file_name, MAX_STR_LENGTH);
+
 	file_path = std::string(file_name);
 	for (auto ch : file_path)
 	{
@@ -15,8 +16,9 @@ MapProcess::MapProcess(char* argv[])
 		else
 			break;
 	}
-	pipe_name = PIPE_NAME + pipe_name;
-	std::cout << file_path << "_cons_map_" << pipe_name << std::endl; 
+
+	file_path = TEST_DIR + file_path;
+	pipe_name = PIPE_NAME + pipe_name + PIPE;
 }
 
 void MapProcess::start()
@@ -37,6 +39,7 @@ KeyValueMap MapProcess::read_data()
 		for (auto word : words)
 			key_value_map[word]++;
 	}
+
 	return key_value_map;
 }
 
@@ -48,18 +51,16 @@ void MapProcess::transfer_data_to_red_process(KeyValueMap key_values)
 	int named_pipe_fd = open((char*)(pipe_name.c_str()), O_WRONLY);
 	if (named_pipe_fd < 0)
 	{
-		std::cerr << "Error in open named pipe" << std::endl;
+		std::cerr << "Error in open named pipe in Map Process" << std::endl;
 		exit(1);
 	}
-	write(named_pipe_fd, data_arr, strlen(data_arr));
+	write(named_pipe_fd, data_arr, strlen(data_arr) + 1);
 	close(named_pipe_fd);
 }
 
 int main(int argc, char* argv[])
 {
-	std::cout << "map" << std::endl;
 	MapProcess map_process(argv);
-	std::cout << "map start" << std::endl;
 	map_process.start();
 	exit(0);
 }

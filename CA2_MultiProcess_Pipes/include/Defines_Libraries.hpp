@@ -15,17 +15,18 @@
 #include <iomanip>
 #include <experimental/filesystem>
 
-#define TEST_DIR "./testcases"
-#define PIPE_NAME "./my_named_pipe"
+#define TEST_DIR "./testcases/"
+#define PIPE_NAME "./Pipes/pipe"
 #define NAMED_PIPE_FLAG 0666
 #define MAX_STR_LENGTH 1024
-#define MAP_PROC "./Map_Proc"
-#define RED_PROC "./Red_Proc"
+#define MAP_PROC "./Build/Map_Proc.out"
+#define RED_PROC "./Build/Red_Proc.out"
 #define CSV ".csv"
 #define COMMA ','
 #define SPACE ' '
-#define OUTPUT_PATH "output.txt"
+#define OUTPUT_PATH "./output.csv"
 #define COLON ':'
+#define PIPE ".pipe"
 
 typedef std::pair<std::string, int> KeyValueStruct;
 #define key first
