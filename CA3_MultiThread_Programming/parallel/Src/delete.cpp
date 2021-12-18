@@ -1,4 +1,4 @@
-#include "../Includes/Image.hpp"
+#include "Image.hpp"
 #include <iostream>
 #include <pthread.h>
 
