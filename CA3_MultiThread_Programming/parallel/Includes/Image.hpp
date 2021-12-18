@@ -14,12 +14,16 @@ struct PicTableCell
 	int color;
 	int row;
 	int col;
+
 };
 
 int rows;
 int cols;
+int buffer_size;
 unsigned char **pixels[2][3];
 int turn;
+char *file_buffer;
+char *file_name;
 // class Image
 // {
 // 	public:

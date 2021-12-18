@@ -1,7 +1,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <fstream>
-#include "Image.hpp"
+#include "../Includes/Image.hpp"
 #include <chrono>
 
 #ifndef _read_img_cpp
@@ -79,18 +79,17 @@ int main(int argc, char *argv[])
 {
 	auto start_time = std::chrono::high_resolution_clock::now();
 
-	char *fileBuffer;
-	int bufferSize;
-	char *fileName = argv[1];
-	if (!fillAndAllocate(fileBuffer, fileName, rows, cols, bufferSize))
+	file_buffer;
+	file_name = argv[1];
+	if (!fillAndAllocate())
 	{
 		cout << "File read error" << endl;
 		return 1;
 	}
 
-	allocate_array(rows, cols);
+	allocate_array();
 
-	read_pixels(bufferSize, fileBuffer);
+	read_pixels();
 
 	smooth();
 

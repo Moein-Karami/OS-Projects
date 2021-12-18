@@ -2,21 +2,31 @@
 #include <iostream>
 #include <pthread.h>
 
+
+void* read_pixels_from_row(void* arg)
+{
+	long row = (long)arg;
+	int count = (rows - row) * (cols % 4);
+	count += (rows - row) * cols;
+
+	for (int j = cols - 1; j >= 0; j--)
+	{
+		for (int k = 0; k < 3; k ++)
+		{
+			pixels[turn][k][row][j] = file_buffer[buffer_size - count];
+			count ++;
+		}
+	}
+}
 void read_pixels(int buffer_size, char* file_buffer)
 {
 	int count = 1;
-	int extra = cols % 4;
+	pthread_t threads[rows];
+
 	for (int i = 0; i < rows; i++)
 	{
-		count += extra;
-		for (int j = cols - 1; j >= 0; j--)
-		{
-			for (int k = 0; k < 3; k ++)
-			{
-				pixels[turn][k][i][j] = file_buffer[buffer_size - count];
-				count ++;
-			}
-		}
+		pthread_create(&threads[i], NULL, read_pixels_from_row, (void*)&i);
+
 	}
 }
 
