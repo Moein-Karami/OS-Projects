@@ -1,4 +1,5 @@
 #include "Image.hpp"
+#include <iostream>
 
 Image::Image(int rows, int cols):
 rows(rows),
@@ -12,6 +13,21 @@ cols(cols)
 			pixels[i][j] = new unsigned char*[rows];
 			for (int k = 0; k < rows; k++)
 				pixels[i][j][k] = new unsigned char[cols];
+		}
+	}
+}
+
+Image::~Image()
+{
+	for (int select = 0; select < 2; select++)
+	{
+		for (int color = 0; color < 3; color++)
+		{
+			for (int i = 0; i < rows; i++)
+			{
+				delete(pixels[select][color][i]);
+			}
+			delete(pixels[select][color]);
 		}
 	}
 }
@@ -124,4 +140,30 @@ void Image::cross()
 			}
 		}
 	}
+}
+
+void Image::export_image(char* file_buffer, std::string file_path, int buffer_size)
+{
+	std::ofstream out(file_path);
+	if (!out)
+	{
+		std::cout << "Fialed to write" << file_path << std::endl;
+		return;
+	}
+	int count = 1;
+	int extra = cols % 4;
+	for (int i = 0; i < rows; i++)
+	{
+		count += extra;
+		for (int j = cols - 1; j >= 0; j--)
+		{
+			for (int color = 0; color < 3; color++)
+			{
+				file_buffer[buffer_size - count] = pixels[turn][color][i][j];
+				count++;
+			}
+		}
+	}
+	out.write(file_buffer, buffer_size);
+	out.close();
 }

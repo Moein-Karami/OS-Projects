@@ -72,67 +72,6 @@ bool fillAndAllocate(char *&buffer, const char *fileName, int &rows, int &cols, 
 	}
 }
 
-void getPixlesFromBMP24(int end, int rows, int cols, char *fileReadBuffer)
-{
-	int count = 1;
-	int extra = cols % 4;
-	for (int i = 0; i < rows; i++)
-	{
-		count += extra;
-		for (int j = cols - 1; j >= 0; j--)
-		for (int k = 0; k < 3; k++)
-		{
-			switch (k)
-			{
-			case 0:
-			// fileReadBuffer[end - count] is the red value
-			break;
-			case 1:
-			// fileReadBuffer[end - count] is the green value
-			break;
-			case 2:
-			// fileReadBuffer[end - count] is the blue value
-			break;
-			// go to the next position in the buffer
-			}
-		}
-	}
-}
-
-void writeOutBmp24(char *fileBuffer, const char *nameOfFileToCreate, int bufferSize)
-{
-	std::ofstream write(nameOfFileToCreate);
-	if (!write)
-	{
-		cout << "Failed to write " << nameOfFileToCreate << endl;
-		return;
-	}
-	int count = 1;
-	int extra = cols % 4;
-	for (int i = 0; i < rows; i++)
-	{
-		count += extra;
-		for (int j = cols - 1; j >= 0; j--)
-		for (int k = 0; k < 3; k++)
-		{
-			switch (k)
-			{
-			case 0:
-			// write red value in fileBuffer[bufferSize - count]
-			break;
-			case 1:
-			// write green value in fileBuffer[bufferSize - count]
-			break;
-			case 2:
-			// write blue value in fileBuffer[bufferSize - count]
-			break;
-			// go to the next position in the buffer
-			}
-		}
-	}
-	write.write(fileBuffer, bufferSize);
-}
-
 int main(int argc, char *argv[])
 {
 	char *fileBuffer;
@@ -150,13 +89,13 @@ int main(int argc, char *argv[])
 
 	img.smooth();
 
-	img.sepia();
-
-	img.average();
-
-	img.cross();
-
 	img.export_image(fileBuffer, "Image.bmp", bufferSize);
+
+	// img.sepia();
+
+	// img.average();
+
+	// img.cross();
 
 	return 0;
 }

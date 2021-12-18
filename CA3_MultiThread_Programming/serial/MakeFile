@@ -1,0 +1,19 @@
+CC = g++ -std=c++11
+BUILD_DIR = ./Build
+SRC_DIR = ./Src
+INCLUDE_DIR = ./Includes
+
+all : ImageFilters.out
+
+ImageFilters.out : Image.o readImg.o
+	${CC} Image.o readImg.o -o ImageFilters.out
+
+Image.o: ${SRC_DIR}/Image.cpp ${INCLUDE_DIR}/Image.hpp
+	${CC} -c ${SRC_DIR}/Image.cpp -o ${BUILD_DIR}/Image.o
+
+readImg.o :
+	${CC} -c ${SRC_DIR}/readImg.cpp -o ${BUILD_DIR}/readImg.o
+
+clean:
+	rm *.out
+	rm ${BUILD_DIR}/*

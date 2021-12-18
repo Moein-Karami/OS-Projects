@@ -9,6 +9,7 @@ class Image
 {
 	public:
 		Image(int rows, int cols);
+		~Image();
 		void read_pixels(int buffer_size, char* file_buffer);
 		void smooth();
 		void sepia();
