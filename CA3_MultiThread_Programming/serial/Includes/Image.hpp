@@ -1,3 +1,6 @@
+#ifndef _Image_hpp_
+#define _Image_hpp_
+
 #include <fstream>
 #include <string>
 
@@ -24,3 +27,5 @@ class Image
 		int turn;
 
 };
+
+#endif

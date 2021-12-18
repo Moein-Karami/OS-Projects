@@ -43,9 +43,6 @@ typedef struct tagBITMAPINFOHEADER
 	DWORD biClrImportant;
 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
 
-int rows;
-int cols;
-
 #endif
 
 bool fillAndAllocate(char *&buffer, const char *fileName, int &rows, int &cols, int &bufferSize)
@@ -91,19 +88,19 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	Image img(rows, cols);
+	allocate_array(rows, cols);
 
-	img.read_pixels(bufferSize, fileBuffer);
+	read_pixels(bufferSize, fileBuffer);
 
-	img.smooth();
+	smooth();
 
-	img.sepia();
+	sepia();
 
-	img.average();
+	average();
 
-	img.cross();
+	cross();
 
-	img.export_image(fileBuffer, "Image.bmp", bufferSize);
+	export_image(fileBuffer, "Image.bmp", bufferSize);
 
 	auto stop_time = std::chrono::high_resolution_clock::now();
 

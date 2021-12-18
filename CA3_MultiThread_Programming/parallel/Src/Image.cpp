@@ -1,23 +1,112 @@
-#include "Image.hpp"
+#include "../Includes/Image.hpp"
 #include <iostream>
+#include <pthread.h>
 
-Image::Image(int rows, int cols):
-rows(rows),
-cols(cols)
+void* allocate_for_row(void* arg)
 {
-	turn = 0;
-	for (int i = 0; i < 2; i++)
+	PicTableCell argument = *((PicTableCell*)arg);
+
+	pixels[argument.turn][argument.color][argument.row] = new unsigned char[cols];
+}
+
+void* allocate_for_color(void* arg)
+{
+	PicTableCell argument = *((PicTableCell*)arg);
+	int seri = argument.turn;
+	int color = argument.color;
+	pixels[seri][color] = new unsigned char*[rows];
+	pthread_t threads[rows];
+	PicTableCell args[rows];
+	int return_code;
+
+	for (int i = 0; i < rows; i++)
 	{
-		for (int j = 0; j < 3; j++)
+		args[i].turn = seri;
+		args[i].color = color;
+		args[i].row = i;
+
+		pthread_create(&threads[i], NULL, allocate_for_row, &args[i]);
+
+		if (return_code)
 		{
-			pixels[i][j] = new unsigned char*[rows];
-			for (int k = 0; k < rows; k++)
-				pixels[i][j][k] = new unsigned char[cols];
+			std::cout << "Error in make thread for allocate row" << std::endl;
+			exit(-1);
+		}
+	}
+	for (int i = 0; i < rows; i++)
+	{
+		return_code = pthread_join(threads[i], NULL);
+		if (return_code)
+		{
+			std::cout << "Error in join thread from allocate row" << std::endl;
+			exit(-1);
 		}
 	}
 }
 
-Image::~Image()
+void* allocate_for_turn(void* collection)
+{
+	int seri = *((int*)collection);
+
+	pthread_t threads[3];
+	int return_code;
+	PicTableCell arg[3];
+
+	for (int color = 0; color < 3; color++)
+	{
+		arg[color].turn = seri;
+		arg[color].color = color;
+
+		return_code = pthread_create(&threads[color], NULL, allocate_for_color, &arg[color]);
+
+		if (return_code)
+		{
+			std::cout << "Error in make thread for allocate color" << std::endl;
+			exit(-1);
+		}
+	}
+
+	for (int color = 0; color < 3; color++)
+	{
+		return_code = pthread_join(threads[color], NULL);
+		if (return_code)
+		{
+			std::cout << "Error in join thread from allocate color" << std::endl;
+			exit(-1);
+		}
+	}
+}
+
+void allocate_array()
+{
+	turn = 0;
+	pthread_t threads[2];
+	int return_code;
+	int arg[] = {0, 1};
+
+	for (int i = 0; i < 2; i++)
+	{
+		return_code = pthread_create(&threads[i], NULL, allocate_for_turn, &arg[i]);
+
+		if (return_code)
+		{
+			std::cout << "Error in make thread for allocate turn" << std::endl;
+			exit(-1);
+		}
+	}
+
+	for (int collect = 0; collect < 2; collect++)
+	{
+		return_code = pthread_join(threads[collect], NULL);
+		if (return_code)
+		{
+			std::cout << "Error in join thread from allocate turn" << std::endl;
+			exit(-1);
+		}
+	}
+}
+
+void delete_allocated_array()
 {
 	for (int select = 0; select < 2; select++)
 	{
@@ -32,7 +121,7 @@ Image::~Image()
 	}
 }
 
-void Image::read_pixels(int buffer_size, char* file_buffer)
+void read_pixels(int buffer_size, char* file_buffer)
 {
 	int count = 1;
 	int extra = cols % 4;
@@ -50,7 +139,7 @@ void Image::read_pixels(int buffer_size, char* file_buffer)
 	}
 }
 
-void Image::smooth()
+void smooth()
 {
 	int nxt = 1 - turn;
 	int sum, cnt;
@@ -75,7 +164,7 @@ void Image::smooth()
 	turn = nxt;
 }
 
-void Image::sepia()
+void sepia()
 {
 	int nxt = 1 - turn;
 	int val;
@@ -107,7 +196,7 @@ void Image::sepia()
 	turn = nxt;
 }
 
-void Image::average()
+void average()
 {
 	long long int avg[] = {0, 0, 0};
 	for (int color = 0; color < 3; color++)
@@ -123,7 +212,7 @@ void Image::average()
 				pixels[turn][color][i][j] = 0.4 * (float)pixels[turn][color][i][j] + 0.6 * (double)avg[color];
 }
 
-void Image::cross()
+void cross()
 {
 	int j;
 	for (int color = 0 ; color < 3; color++)
@@ -142,7 +231,7 @@ void Image::cross()
 	}
 }
 
-void Image::export_image(char* file_buffer, std::string file_path, int buffer_size)
+void export_image(char* file_buffer, std::string file_path, int buffer_size)
 {
 	std::ofstream out(file_path);
 	if (!out)
