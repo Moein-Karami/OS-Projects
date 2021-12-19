@@ -11,33 +11,7 @@ void* allocate_for_color(void* arg)
 
 	for (int i = 0; i < rows; i++)
 		pixels[seri][color][i] = new unsigned char[cols];
-	// pthread_t threads[rows];
-	// PicTableCell args[rows];
-	// int return_code;
 
-	// for (int i = 0; i < rows; i++)
-	// {
-	// 	args[i].turn = seri;
-	// 	args[i].color = color;
-	// 	args[i].row = i;
-
-	// 	return_code = pthread_create(&threads[i], NULL, allocate_for_row, &args[i]);
-
-	// 	if (return_code)
-	// 	{
-	// 		std::cout << "Error in make thread for allocate row" << std::endl;
-	// 		exit(-1);
-	// 	}
-	// }
-	// for (int i = 0; i < rows; i++)
-	// {
-	// 	return_code = pthread_join(threads[i], NULL);
-	// 	if (return_code)
-	// 	{
-	// 		std::cout << "Error in join thread from allocate row" << std::endl;
-	// 		exit(-1);
-	// 	}
-	// }
 	pthread_exit(NULL);
 }
 
