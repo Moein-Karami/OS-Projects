@@ -1,16 +1,7 @@
-#include <iostream>
-#include <unistd.h>
-#include <fstream>
-#include "../Includes/Image.hpp"
-#include <chrono>
-
 #ifndef _read_img_cpp
 #define _read_img_cpp
 
-using std::cout;
-using std::endl;
-using std::ifstream;
-using std::ofstream;
+#include "Image.hpp"
 
 #pragma pack(1)
 #pragma once
@@ -70,7 +61,7 @@ bool fillAndAllocate()
 	}
 	else
 	{
-		cout << "File" << file_name << " doesn't exist!" << endl;
+		std::cout << "File" << file_name << " doesn't exist!" << std::endl;
 		return 0;
 	}
 }
@@ -83,7 +74,7 @@ int main(int argc, char *argv[])
 
 	if (!fillAndAllocate())
 	{
-		cout << "File read error" << endl;
+		std::cout << "File read error" << std::endl;
 		return 1;
 	}
 
@@ -99,13 +90,13 @@ int main(int argc, char *argv[])
 
 	cross();
 
-	export_image(fileBuffer, "Image.bmp", bufferSize);
+	export_image("Image.bmp");
 
 	auto stop_time = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time);
 
-	cout << duration.count() << std::endl;
+	std::cout << duration.count() << std::endl;
 
 	return 0;
 }

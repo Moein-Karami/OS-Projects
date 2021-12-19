@@ -22,6 +22,7 @@ void* smooth_color_row(void* argument)
 		}
 		pixels[1 - turn][color][i][j] = sum / cnt;
 	}
+	pthread_exit(NULL);
 }
 
 void* smooth_color(void* arg)
@@ -53,6 +54,7 @@ void* smooth_color(void* arg)
 			exit(-1);
 		}
 	}
+	pthread_exit(NULL);
 }
 
 void smooth()
@@ -71,7 +73,7 @@ void smooth()
 	}
 	for (int color = 0; color < 3; color++)
 	{
-		return_code = pthread_join(threads[i], NULL);
+		return_code = pthread_join(threads[color], NULL);
 		if (return_code)
 		{
 			std::cout << "Error in join thread from smooth color" << std::endl;

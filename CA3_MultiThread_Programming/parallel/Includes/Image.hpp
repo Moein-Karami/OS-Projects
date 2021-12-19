@@ -3,6 +3,10 @@
 
 #include <fstream>
 #include <string>
+#include <iostream>
+#include <unistd.h>
+#include <fstream>
+#include <chrono>
 
 #define RED 0
 #define BLUE 2
@@ -50,14 +54,15 @@ void* sepia_color(void* argument);
 void* sepia_color_row(void* argument);
 
 void average();
+void *average_color(void* arg);
+void *average_color_row(void* arguments);
+
 void cross();
-void export_image(char* file_buffer, std::string file_path, int buffer_size);
+void* cross_color(void* arg);
 
-
+void export_image(std::string file_path);
 
 	// private:
-		
-
 
 // };
 

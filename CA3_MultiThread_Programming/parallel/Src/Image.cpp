@@ -17,6 +17,7 @@ void* read_pixels_from_row(void* arg)
 			count ++;
 		}
 	}
+	pthread_exit(NULL);
 }
 
 void read_pixels()
@@ -47,22 +48,6 @@ void read_pixels()
 	}
 }
 
-void average()
-{
-	long long int avg[] = {0, 0, 0};
-	for (int color = 0; color < 3; color++)
-		for (int i = 0; i < rows; i++)
-			for (int j = 0; j < cols; j++)
-				avg[color] += pixels[turn][color][i][j];
-	for (int i = 0; i < 3; i++)
-		avg[i] /= (long long)((long long)rows * (long long)cols);
-
-	for (int color = 0; color < 3; color++)
-		for (int i = 0 ; i < rows; i++)
-			for (int j = 0; j < cols; j++)
-				pixels[turn][color][i][j] = 0.4 * (float)pixels[turn][color][i][j] + 0.6 * (double)avg[color];
-}
-
 void cross()
 {
 	int j;
@@ -82,7 +67,7 @@ void cross()
 	}
 }
 
-void export_image(char* file_buffer, std::string file_path, int buffer_size)
+void export_image(std::string file_path)
 {
 	std::ofstream out(file_path);
 	if (!out)

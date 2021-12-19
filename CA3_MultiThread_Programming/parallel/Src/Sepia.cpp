@@ -26,8 +26,9 @@ void* sepia_color_row(void* argument)
 				break;
 		}
 		val = (val > 255) ? 255 : val;
-		pixel[nxt][color][i][j] = val;
+		pixels[nxt][color][i][j] = val;
 	}
+	pthread_exit(NULL);
 }
 
 void* sepia_color(void* arg)
@@ -60,6 +61,7 @@ void* sepia_color(void* arg)
 			exit(-1);
 		}
 	}
+	pthread_exit(NULL);
 }
 
 void sepia()
@@ -69,7 +71,7 @@ void sepia()
 
 	for (int color = 0; color < 3; color++)
 	{
-		return_code = pthread_create(&threads[i], NULL, sepia_color, (void*)color);
+		return_code = pthread_create(&threads[color], NULL, sepia_color, (void*)color);
 
 		if (return_code)
 		{
