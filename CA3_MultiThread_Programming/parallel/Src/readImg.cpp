@@ -45,32 +45,32 @@ typedef struct tagBITMAPINFOHEADER
 
 #endif
 
-bool fillAndAllocate(char *&buffer, const char *fileName, int &rows, int &cols, int &bufferSize)
+bool fillAndAllocate()
 {
-  	std::ifstream file(fileName);
+  	std::ifstream file(file_name);
 
 	if (file)
 	{
-	file.seekg(0, std::ios::end);
-	std::streampos length = file.tellg();
-	file.seekg(0, std::ios::beg);
+		file.seekg(0, std::ios::end);
+		std::streampos length = file.tellg();
+		file.seekg(0, std::ios::beg);
 
-	buffer = new char[length];
-	file.read(&buffer[0], length);
+		file_buffer = new char[length];
+		file.read(&file_buffer[0], length);
 
-	PBITMAPFILEHEADER file_header;
-	PBITMAPINFOHEADER info_header;
+		PBITMAPFILEHEADER file_header;
+		PBITMAPINFOHEADER info_header;
 
-	file_header = (PBITMAPFILEHEADER)(&buffer[0]);
-	info_header = (PBITMAPINFOHEADER)(&buffer[0] + sizeof(BITMAPFILEHEADER));
-	rows = info_header->biHeight;
-	cols = info_header->biWidth;
-	bufferSize = file_header->bfSize;
-	return 1;
+		file_header = (PBITMAPFILEHEADER)(&file_buffer[0]);
+		info_header = (PBITMAPINFOHEADER)(&file_buffer[0] + sizeof(BITMAPFILEHEADER));
+		rows = info_header->biHeight;
+		cols = info_header->biWidth;
+		buffer_size = file_header->bfSize;
+		return 1;
 	}
 	else
 	{
-		cout << "File" << fileName << " doesn't exist!" << endl;
+		cout << "File" << file_name << " doesn't exist!" << endl;
 		return 0;
 	}
 }
@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
 {
 	auto start_time = std::chrono::high_resolution_clock::now();
 
-	file_buffer;
 	file_name = argv[1];
+
 	if (!fillAndAllocate())
 	{
 		cout << "File read error" << endl;

@@ -38,9 +38,17 @@ void* delete_for_color(void* arg);
 void* delete_for_turn(void* collection);
 void delete_allocated_array();
 
-void read_pixels(int buffer_size, char* file_buffer);
+void* read_pixels_from_row(void* arg);
+void read_pixels();
+
 void smooth();
+void* smooth_color(void* arg);
+void* smooth_color_row(void* argument);
+
 void sepia();
+void* sepia_color(void* argument);
+void* sepia_color_row(void* argument);
+
 void average();
 void cross();
 void export_image(char* file_buffer, std::string file_path, int buffer_size);

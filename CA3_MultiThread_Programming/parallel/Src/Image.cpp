@@ -1,4 +1,4 @@
-#include "../Includes/Image.hpp"
+#include "Image.hpp"
 #include <iostream>
 #include <pthread.h>
 
@@ -7,7 +7,7 @@ void* read_pixels_from_row(void* arg)
 {
 	long row = (long)arg;
 	int count = (rows - row) * (cols % 4);
-	count += (rows - row) * cols;
+	count += (rows - row - 1) * cols * 3;
 
 	for (int j = cols - 1; j >= 0; j--)
 	{
@@ -18,73 +18,33 @@ void* read_pixels_from_row(void* arg)
 		}
 	}
 }
-void read_pixels(int buffer_size, char* file_buffer)
+
+void read_pixels()
 {
 	int count = 1;
 	pthread_t threads[rows];
+	int return_code;
 
 	for (int i = 0; i < rows; i++)
 	{
-		pthread_create(&threads[i], NULL, read_pixels_from_row, (void*)&i);
+		return_code = pthread_create(&threads[i], NULL, read_pixels_from_row, (void*)i);
 
-	}
-}
-
-void smooth()
-{
-	int nxt = 1 - turn;
-	int sum, cnt;
-	for (int color = 0; color < 3; color++)
-	{
-		for (int i = 0; i < rows; i++)
+		if (return_code)
 		{
-			for (int j = 0; j < cols; j++)
-			{
-				sum = 0;
-				cnt = 0;
-
-				for (int delta_x = -1; delta_x <= 1; delta_x++)
-					for (int delta_y = -1; delta_y <= 1; delta_y++)
-						if (0 <= i + delta_x && i + delta_x < rows && 0 <= j + delta_y && j + delta_y < cols)
-							sum += (int)pixels[turn][color][i + delta_x][j + delta_y], cnt++;
-				sum /= cnt;
-				pixels[nxt][color][i][j] = sum;
-			}
+			std::cout << "Error in creat thread for read pixels from row" << std::endl;
+			exit(-1);
 		}
 	}
-	turn = nxt;
-}
 
-void sepia()
-{
-	int nxt = 1 - turn;
-	int val;
-	for (int color = 0; color < 3; color++)
+	for (int i = 0; i < rows; i++)
 	{
-		for (int i = 0 ; i < rows; i++)
+		return_code = pthread_join(threads[i], NULL);
+		if (return_code)
 		{
-			for (int j = 0; j < cols; j++)
-			{
-				switch (color)
-				{
-					case RED:
-						val = (float)pixels[turn][RED][i][j] * 0.393 + (float)pixels[turn][GREEN][i][j] * 0.769 +
-								(float)pixels[turn][BLUE][i][j] * 0.189;
-						break;
-					case GREEN:
-						val = (float)pixels[turn][RED][i][j] * 0.349 + (float)pixels[turn][GREEN][i][j] * 0.686 +
-								(float)pixels[turn][BLUE][i][j] * 0.168;
-						break;
-					case BLUE:
-						val = (float)pixels[turn][RED][i][j] * 0.272 + (float)pixels[turn][GREEN][i][j] * 0.534 +
-								(float)pixels[turn][BLUE][i][j] * 0.131;
-						break;
-				}
-				pixels[nxt][color][i][j] = (val < 255) ? val : 255;
-			}
+			std::cout << "Error in join thread from  read pixels from row" << std::endl;
+			exit(-1);
 		}
 	}
-	turn = nxt;
 }
 
 void average()
@@ -92,7 +52,7 @@ void average()
 	long long int avg[] = {0, 0, 0};
 	for (int color = 0; color < 3; color++)
 		for (int i = 0; i < rows; i++)
-			for (int j = 0; j < rows; j++)
+			for (int j = 0; j < cols; j++)
 				avg[color] += pixels[turn][color][i][j];
 	for (int i = 0; i < 3; i++)
 		avg[i] /= (long long)((long long)rows * (long long)cols);

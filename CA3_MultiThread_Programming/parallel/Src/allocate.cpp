@@ -25,7 +25,7 @@ void* allocate_for_color(void* arg)
 		args[i].color = color;
 		args[i].row = i;
 
-		pthread_create(&threads[i], NULL, allocate_for_row, &args[i]);
+		return_code = pthread_create(&threads[i], NULL, allocate_for_row, &args[i]);
 
 		if (return_code)
 		{
