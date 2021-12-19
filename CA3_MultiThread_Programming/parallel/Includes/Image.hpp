@@ -29,9 +29,6 @@ extern unsigned char **pixels[2][3];
 extern int turn;
 extern char *file_buffer;
 extern char *file_name;
-// class Image
-// {
-// 	public:
 
 extern void* allocate_for_row(void* arg);
 extern void* allocate_for_color(void* arg);
@@ -62,7 +59,7 @@ extern void cross();
 extern void* cross_color(void* arg);
 
 extern void export_image(std::string file_path);
-
+void* export_pixels_from_row(void* arg);
 	// private:
 
 // };

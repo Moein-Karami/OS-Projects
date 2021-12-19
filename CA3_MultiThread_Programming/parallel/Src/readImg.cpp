@@ -100,11 +100,13 @@ int main(int argc, char *argv[])
 
 	export_image("Image.bmp");
 
+	delete_allocated_array();
+
 	auto stop_time = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time);
 
-	std::cout << duration.count() << std::endl;
+	std::cout << "Runnig Time: " <<  duration.count() << std::endl;
 
 	return 0;
 }

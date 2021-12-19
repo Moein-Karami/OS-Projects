@@ -2,53 +2,48 @@
 #include <iostream>
 #include <pthread.h>
 
-void* allocate_for_row(void* arg)
-{
-	PicTableCell argument = *((PicTableCell*)arg);
-
-	pixels[argument.turn][argument.color][argument.row] = new unsigned char[cols];
-	pthread_exit(NULL);
-}
-
 void* allocate_for_color(void* arg)
 {
 	PicTableCell argument = *((PicTableCell*)arg);
 	int seri = argument.turn;
 	int color = argument.color;
 	pixels[seri][color] = new unsigned char*[rows];
-	pthread_t threads[rows];
-	PicTableCell args[rows];
-	int return_code;
 
 	for (int i = 0; i < rows; i++)
-	{
-		args[i].turn = seri;
-		args[i].color = color;
-		args[i].row = i;
+		pixels[seri][color][i] = new unsigned char[cols];
+	// pthread_t threads[rows];
+	// PicTableCell args[rows];
+	// int return_code;
 
-		return_code = pthread_create(&threads[i], NULL, allocate_for_row, &args[i]);
+	// for (int i = 0; i < rows; i++)
+	// {
+	// 	args[i].turn = seri;
+	// 	args[i].color = color;
+	// 	args[i].row = i;
 
-		if (return_code)
-		{
-			std::cout << "Error in make thread for allocate row" << std::endl;
-			exit(-1);
-		}
-	}
-	for (int i = 0; i < rows; i++)
-	{
-		return_code = pthread_join(threads[i], NULL);
-		if (return_code)
-		{
-			std::cout << "Error in join thread from allocate row" << std::endl;
-			exit(-1);
-		}
-	}
+	// 	return_code = pthread_create(&threads[i], NULL, allocate_for_row, &args[i]);
+
+	// 	if (return_code)
+	// 	{
+	// 		std::cout << "Error in make thread for allocate row" << std::endl;
+	// 		exit(-1);
+	// 	}
+	// }
+	// for (int i = 0; i < rows; i++)
+	// {
+	// 	return_code = pthread_join(threads[i], NULL);
+	// 	if (return_code)
+	// 	{
+	// 		std::cout << "Error in join thread from allocate row" << std::endl;
+	// 		exit(-1);
+	// 	}
+	// }
 	pthread_exit(NULL);
 }
 
 void* allocate_for_turn(void* collection)
 {
-	int seri = *((int*)collection);
+	long seri = (long)collection;
 
 	pthread_t threads[3];
 	int return_code;
@@ -85,11 +80,10 @@ void allocate_array()
 	turn = 0;
 	pthread_t threads[2];
 	int return_code;
-	int arg[] = {0, 1};
 
-	for (int i = 0; i < 2; i++)
+	for (int collection = 0; collection < 2; collection++)
 	{
-		return_code = pthread_create(&threads[i], NULL, allocate_for_turn, &arg[i]);
+		return_code = pthread_create(&threads[collection], NULL, allocate_for_turn, (void*)collection);
 
 		if (return_code)
 		{
@@ -98,9 +92,9 @@ void allocate_array()
 		}
 	}
 
-	for (int collect = 0; collect < 2; collect++)
+	for (int collection = 0; collection < 2; collection++)
 	{
-		return_code = pthread_join(threads[collect], NULL);
+		return_code = pthread_join(threads[collection], NULL);
 		if (return_code)
 		{
 			std::cout << "Error in join thread from allocate turn" << std::endl;
