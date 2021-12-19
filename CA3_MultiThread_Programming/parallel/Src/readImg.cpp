@@ -86,6 +86,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	// auto filter_start = std::chrono::high_resolution_clock::now();
+
 	allocate_array();
 
 	read_pixels();
@@ -98,15 +100,20 @@ int main(int argc, char *argv[])
 
 	cross();
 
+	// auto filter_stop = std::chrono::high_resolution_clock::now();
+
+	// auto filter_duration = std::chrono::duration_cast<std::chrono::milliseconds>(filter_stop - filter_start);
+
 	export_image("Image.bmp");
 
 	delete_allocated_array();
-
+	
 	auto stop_time = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time);
 
-	std::cout << "Runnig Time: " <<  duration.count() << std::endl;
+	std::cout << "Total Runnig Time: " <<  duration.count() << std::endl;
+	// std::cout << "Filter Runnig Time: " <<  filter_duration.count() << std::endl;
 
 	return 0;
 }
