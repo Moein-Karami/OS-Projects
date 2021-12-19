@@ -10,6 +10,14 @@ typedef int LONG;
 typedef unsigned short WORD;
 typedef unsigned int DWORD;
 
+int rows;
+int cols;
+int buffer_size;
+unsigned char **pixels[2][3];
+int turn;
+char *file_buffer;
+char *file_name;
+
 typedef struct tagBITMAPFILEHEADER
 {
 	WORD bfType;

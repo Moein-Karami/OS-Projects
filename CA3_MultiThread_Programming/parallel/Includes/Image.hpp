@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <chrono>
+#include <pthread.h>
 
 #define RED 0
 #define BLUE 2
@@ -21,46 +22,46 @@ struct PicTableCell
 
 };
 
-int rows;
-int cols;
-int buffer_size;
-unsigned char **pixels[2][3];
-int turn;
-char *file_buffer;
-char *file_name;
+extern int rows;
+extern int cols;
+extern int buffer_size;
+extern unsigned char **pixels[2][3];
+extern int turn;
+extern char *file_buffer;
+extern char *file_name;
 // class Image
 // {
 // 	public:
 
-void* allocate_for_row(void* arg);
-void* allocate_for_color(void* arg);
-void* allocate_for_turn(void* collection);
-void allocate_array();
+extern void* allocate_for_row(void* arg);
+extern void* allocate_for_color(void* arg);
+extern void* allocate_for_turn(void* collection);
+extern void allocate_array();
 
-void* delete_for_row(void* arg);
-void* delete_for_color(void* arg);
-void* delete_for_turn(void* collection);
-void delete_allocated_array();
+extern void* delete_for_row(void* arg);
+extern void* delete_for_color(void* arg);
+extern void* delete_for_turn(void* collection);
+extern void delete_allocated_array();
 
-void* read_pixels_from_row(void* arg);
-void read_pixels();
+extern void* read_pixels_from_row(void* arg);
+extern void read_pixels();
 
-void smooth();
-void* smooth_color(void* arg);
-void* smooth_color_row(void* argument);
+extern void smooth();
+extern void* smooth_color(void* arg);
+extern void* smooth_color_row(void* argument);
 
-void sepia();
-void* sepia_color(void* argument);
-void* sepia_color_row(void* argument);
+extern void sepia();
+extern void* sepia_color(void* argument);
+extern void* sepia_color_row(void* argument);
 
-void average();
-void *average_color(void* arg);
-void *average_color_row(void* arguments);
+extern void average();
+extern void *average_color(void* arg);
+extern void *average_color_row(void* arguments);
 
-void cross();
-void* cross_color(void* arg);
+extern void cross();
+extern void* cross_color(void* arg);
 
-void export_image(std::string file_path);
+extern void export_image(std::string file_path);
 
 	// private:
 

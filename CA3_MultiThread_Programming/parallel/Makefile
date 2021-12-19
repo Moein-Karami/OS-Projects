@@ -1,4 +1,4 @@
-CC = g++ -std=c++11
+CC = g++ -std=c++11 -pthread
 BUILD_DIR = ./Build
 SRC_DIR = ./Src
 INCLUDE_DIR = ./Includes
@@ -33,4 +33,4 @@ ${BUILD_DIR}/Smooth.o : $(SRC_DIR)/Smooth.cpp ${INCLUDE_DIR}/Image.hpp
 	${CC} -c -I ${INCLUDE_DIR} ${SRC_DIR}/Smooth.cpp -o ${BUILD_DIR}/Smooth.o
 
 clean :
-	rm *.out ${BUILD_DIR}/*
+	rm *.out ${BUILD_DIR}/*.o

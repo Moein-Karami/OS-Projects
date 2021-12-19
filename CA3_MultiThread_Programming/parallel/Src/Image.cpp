@@ -48,25 +48,6 @@ void read_pixels()
 	}
 }
 
-void cross()
-{
-	int j;
-	for (int color = 0 ; color < 3; color++)
-	{
-		for (int i = 0; i < rows; i++)
-		{
-			j = cols - i - 1;
-			for (int delta = -1; delta <= 1; delta++)
-			{
-				if (i + delta < cols && i + delta >= 0)
-					pixels[turn][color][i][i + delta] = 255;
-				if (j + delta < cols && j + delta >= 0)
-					pixels[turn][color][i][j + delta] = 255;
-			}
-		}
-	}
-}
-
 void export_image(std::string file_path)
 {
 	std::ofstream out(file_path);
